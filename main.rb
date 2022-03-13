@@ -1,5 +1,5 @@
 class Select2Array
-  attr_reader :item_condition_hook
+  attr_reader :item_format
 
   def initialize(&block)
     @groups = []
@@ -12,8 +12,8 @@ class Select2Array
     yield group if block_given?
   end
 
-  def set_item_condition_hook(lambda)
-    @item_condition_hook = lambda
+  def set_item_format(lambda)
+    @item_format = lambda
   end
 
   def export
@@ -38,8 +38,6 @@ class Select2ArrayGroup
 end
 
 class Select2ArrayItem
-  attr_reader :name, :romaji, :path
-
   def initialize(config, name, path, romaji = '')
     @config = config
     @name = name
@@ -48,15 +46,15 @@ class Select2ArrayItem
   end
 
   def export
-    ["#{@name} - #{@romaji} - #{@path}", @path] if @config.item_condition_hook.call(@path)
+    @config.item_format.call(@name, @path, @romaji)
   end
 end
 
 def menu_array
-  item_condition = ->(path) { p path } # フックを注入できる
+  item_format = ->(name, path, romaji) { ["#{name} - #{romaji} - #{path}", path] if p path }
 
   Select2Array.new do |c|
-    c.set_item_condition_hook(item_condition)
+    c.set_item_format(item_format)
 
     c.group('👤メインメニュー') do |g|
       g.item('機能1', '/feature1', 'kinou1')
